@@ -3,8 +3,7 @@ import cv2
 import numpy as np
 import time
 import os
-from cvzone.HandTrackingModule import HandDetector
-from cvzone.ClassificationModule import Classifier
+import mediapipe as mp
 
 # --- Streamlit Config ---
 st.set_page_config(page_title="Sign Language Detection", layout="wide")
@@ -35,33 +34,21 @@ st.title("🤟 Real-Time Sign Language Detection")
 st.markdown("""
 ### 🔓 Open Source | 🚀 Fast | 📸 Real-Time Camera
 
-This open-source sign language detection system uses machine learning and computer vision to recognize hand gestures from American Sign Language (ASL). It supports the following signs:
-
-- 👋 **Hello**
-- ❤️ **I Love You**
-- 🙏 **Thank You**
-- ❌ **No**
+This open-source sign language detection system uses computer vision to detect hand gestures. 
 
 ### ✅ Features:
-- Real-time gesture detection with webcam
-- Converts gesture to text display
-- Minimal lag using OpenCV and cvzone
+- Real-time hand detection with webcam
+- Hand landmark tracking
 - Dark, modern UI using Streamlit
-- Black screen showing detected gesture
+- Live hand position display
 """)
 
-st.warning("⚠️ Currently trained for 4 signs: 'Hello', 'I Love You', 'Thank You', and 'No'")
+st.info("ℹ️ This is a hand detection demo. For full sign language recognition, you would need to train a custom model.")
 
-# --- Load Model ---
-model_path = os.path.join("model", "keras_model.h5")
-labels_path = os.path.join("model", "labels.txt")
-
-if not os.path.exists(model_path) or not os.path.exists(labels_path):
-    st.error("❌ Model files not found. Make sure keras_model.h5 and labels.txt exist in 'model/' folder.")
-    st.stop()
-
-classifier = Classifier(model_path, labels_path)
-detector = HandDetector(maxHands=1)
+# --- MediaPipe Setup ---
+mp_hands = mp.solutions.hands
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
 
 # --- Webcam Setup ---
 cap = cv2.VideoCapture(0)
@@ -69,47 +56,51 @@ cap.set(3, 640)
 cap.set(4, 480)
 FRAME_WINDOW = st.image([])
 
-# --- State Variables ---
-last_prediction = ""
-last_detection_time = 0
-
-# --- App Loop ---
-while True:
-    success, frame = cap.read()
-    if not success:
-        st.error("⚠️ Failed to access camera.")
-        break
-
-    hands, frame = detector.findHands(frame)
-    prediction = ""
+# --- Hand Detection Loop ---
+with mp_hands.Hands(
+    model_complexity=0,
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5
+) as hands:
     
-    if hands:
-        hand = hands[0]
-        x, y, w, h = hand['bbox']
-        cropped = frame[y-20:y+h+20, x-20:x+w+20]
-        cropped = cv2.resize(cropped, (224, 224))
-        cropped = np.expand_dims(cropped, axis=0)
-        cropped = np.array(cropped, dtype=np.float32)
-        cropped = cropped / 255.0
-        
-        prediction, index = classifier.getPrediction(cropped, draw=False)
-        
-        if prediction[index] > 0.9:
-            label = classifier.labels[index]
-            cv2.putText(frame, label, (x, y - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            
-            current_time = time.time()
-            if label != last_prediction or current_time - last_detection_time > 3:
-                last_prediction = label
-                last_detection_time = current_time
-    
-    # Display black screen with text
-    black_img = np.zeros((200, 640, 3), dtype=np.uint8)
-    if last_prediction:
-        cv2.putText(black_img, f"Detected: {last_prediction}", (50, 120),
-                    cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 4)
+    while True:
+        success, frame = cap.read()
+        if not success:
+            st.error("⚠️ Failed to access camera.")
+            break
 
-    combined_img = np.vstack((frame, black_img))
-    FRAME_WINDOW.image(combined_img, channels="BGR")
+        # Flip the frame horizontally for a later selfie-view display
+        frame = cv2.flip(frame, 1)
+        
+        # Convert the BGR image to RGB
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        # Process the image and detect hands
+        results = hands.process(frame_rgb)
+        
+        # Draw hand landmarks
+        if results.multi_hand_landmarks:
+            for hand_landmarks in results.multi_hand_landmarks:
+                mp_drawing.draw_landmarks(
+                    frame,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS,
+                    mp_drawing_styles.get_default_hand_landmarks_style(),
+                    mp_drawing_styles.get_default_hand_connections_style()
+                )
+                
+                # Get hand position info
+                h, w, _ = frame.shape
+                wrist = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
+                wrist_x, wrist_y = int(wrist.x * w), int(wrist.y * h)
+                
+                # Display hand position
+                cv2.putText(frame, f"Hand detected at ({wrist_x}, {wrist_y})", 
+                           (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        else:
+            cv2.putText(frame, "No hand detected", (10, 30), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+
+        # Display the frame
+        FRAME_WINDOW.image(frame, channels="BGR")
 
