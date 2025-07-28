@@ -1,7 +1,6 @@
 import streamlit as st
 import cv2
 import numpy as np
-import pyttsx3
 import time
 import os
 from cvzone.HandTrackingModule import HandDetector
@@ -34,27 +33,24 @@ st.markdown("""
 # --- Title and Description ---
 st.title("🤟 Real-Time Sign Language Detection")
 st.markdown("""
-### 🔓 Open Source | 🚀 Fast | 🎤 Voice Enabled | 📸 Real-Time Camera
+### 🔓 Open Source | 🚀 Fast | 📸 Real-Time Camera
 
 This open-source sign language detection system uses machine learning and computer vision to recognize hand gestures from American Sign Language (ASL). It supports the following signs:
 
 - 👋 **Hello**
 - ❤️ **I Love You**
+- 🙏 **Thank You**
+- ❌ **No**
 
 ### ✅ Features:
 - Real-time gesture detection with webcam
-- Converts gesture to text and speech
+- Converts gesture to text display
 - Minimal lag using OpenCV and cvzone
-- Voice output with pyttsx3
 - Dark, modern UI using Streamlit
 - Black screen showing detected gesture
 """)
 
-st.warning("⚠️ Currently trained for only 2 signs: 'Hello' and 'I Love You'. More coming soon!")
-
-# --- Voice Engine Setup ---
-engine = pyttsx3.init()
-engine.setProperty('rate', 150)
+st.warning("⚠️ Currently trained for 4 signs: 'Hello', 'I Love You', 'Thank You', and 'No'")
 
 # --- Load Model ---
 model_path = os.path.join("model", "keras_model.h5")
@@ -75,7 +71,7 @@ FRAME_WINDOW = st.image([])
 
 # --- State Variables ---
 last_prediction = ""
-last_spoken_time = 0
+last_detection_time = 0
 
 # --- App Loop ---
 while True:
@@ -104,11 +100,9 @@ while True:
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             
             current_time = time.time()
-            if label != last_prediction or current_time - last_spoken_time > 3:
-                engine.say(label)
-                engine.runAndWait()
+            if label != last_prediction or current_time - last_detection_time > 3:
                 last_prediction = label
-                last_spoken_time = current_time
+                last_detection_time = current_time
     
     # Display black screen with text
     black_img = np.zeros((200, 640, 3), dtype=np.uint8)
