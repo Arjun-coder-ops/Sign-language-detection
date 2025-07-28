@@ -2,6 +2,12 @@
 
 A real-time sign language detection system that uses machine learning and computer vision to recognize American Sign Language (ASL) gestures from webcam input.
 
+## ⚠️ Important: Camera Access
+
+**Streamlit Cloud Limitation**: This app cannot access your webcam when deployed on Streamlit Cloud due to remote server limitations.
+
+**For Real Camera Testing**: Run the app locally on your computer.
+
 ## ✨ Features
 
 - **Real-time Detection**: Live webcam feed with instant gesture recognition
@@ -19,14 +25,14 @@ A real-time sign language detection system that uses machine learning and comput
 ### Prerequisites
 
 - Python 3.8 or higher
-- Webcam
+- Webcam (for local testing)
 - Windows 10/11 (tested on Windows)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Arjun-coder-ops/Sign-language-detection.git
    cd SignLanguage-Detection
    ```
 
@@ -44,14 +50,23 @@ A real-time sign language detection system that uses machine learning and comput
    pip install -r requirements.txt
    ```
 
-4. **Run the application**
+4. **Run the application LOCALLY**
    ```bash
    streamlit run app.py
    ```
 
 5. **Open your browser**
    - Navigate to `http://localhost:8501`
-   - Allow camera access when prompted
+   - **Allow camera access** when prompted
+   - Your webcam will work for real sign detection!
+
+## 🌐 Streamlit Cloud Deployment
+
+The app is also deployed on Streamlit Cloud for demonstration purposes:
+
+- **URL**: [Your Streamlit Cloud URL]
+- **Note**: Camera access is limited on cloud deployment
+- **Demo Mode**: Shows sample images and instructions
 
 ## 📁 Project Structure
 
@@ -94,11 +109,17 @@ SignLanguage-Detection/
 
 ## 🎮 Usage
 
+### Local Testing (Recommended)
 1. **Start the app**: Run `streamlit run app.py`
 2. **Position your hand**: Hold your hand in front of the camera
 3. **Make signs**: Perform any of the supported ASL signs
 4. **Listen**: The app will speak the detected sign
 5. **Watch**: See the detection results on screen
+
+### Cloud Deployment
+1. **Visit the Streamlit Cloud URL**
+2. **View demo mode**: See sample images and instructions
+3. **Follow local setup**: Use the instructions to run locally
 
 ## 🔧 Customization
 
@@ -118,10 +139,14 @@ SignLanguage-Detection/
 
 ### Common Issues
 
-**Camera not working:**
+**Camera not working locally:**
 - Ensure camera permissions are granted
 - Check if another application is using the camera
 - Try restarting the application
+
+**Camera not working on Streamlit Cloud:**
+- This is expected - cloud servers cannot access local webcams
+- Use local testing for real camera functionality
 
 **Model not loading:**
 - Verify `model/keras_model.h5` and `model/labels.txt` exist

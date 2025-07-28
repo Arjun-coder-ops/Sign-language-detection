@@ -28,17 +28,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- Title and Description ---
-st.title("🤟 Real-Time Webcam Feed")
+st.title("🤟 Sign Language Detection")
 st.markdown("""
 ### 🔓 Open Source | 🚀 Fast | 📸 Real-Time Camera
 
-This is a basic webcam feed application that demonstrates real-time video processing.
+This is a sign language detection system that recognizes ASL gestures from webcam input.
 
 ### ✅ Features:
-- Real-time webcam feed
-- Basic motion detection
+- Real-time sign detection with webcam
+- Supports 4 ASL signs: Hello, I Love You, Thank You, No
 - Dark, modern UI using Streamlit
-- Live video display
+- Voice output for detected signs
 """)
 
 # --- Camera Access Check ---
@@ -54,27 +54,68 @@ def check_camera():
 camera_available = check_camera()
 
 if not camera_available:
-    st.warning("⚠️ Camera not available. This might be because:")
+    st.warning("⚠️ **Camera Not Available**")
     st.markdown("""
-    - You're running this on Streamlit Cloud (remote server)
-    - Camera permissions are not granted
-    - No camera is connected
+    ### Why can't I access my camera?
     
-    **Demo Mode**: Showing a sample image instead.
+    This app is running on **Streamlit Cloud** (a remote server), which cannot access your local webcam for security reasons.
+    
+    ### How to test with real camera:
+    
+    1. **Clone the repository**:
+       ```bash
+       git clone https://github.com/Arjun-coder-ops/Sign-language-detection.git
+       cd SignLanguage-Detection
+       ```
+    
+    2. **Install dependencies**:
+       ```bash
+       pip install -r requirements.txt
+       ```
+    
+    3. **Run locally**:
+       ```bash
+       streamlit run app.py
+       ```
+    
+    4. **Allow camera access** when prompted in your browser
+    
+    ### What you'll see here:
+    - Demo images showing how the app works
+    - Instructions for local setup
+    - Sample sign language images
     """)
     
-    # Create a demo image
-    demo_img = np.zeros((480, 640, 3), dtype=np.uint8)
-    cv2.putText(demo_img, "Camera Demo", (200, 240), 
-               cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3)
-    cv2.putText(demo_img, "Camera not available", (150, 280), 
-               cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-    cv2.putText(demo_img, "This is a demo image", (180, 320), 
-               cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+    # Create demo content
+    col1, col2 = st.columns(2)
     
-    st.image(demo_img, channels="BGR", caption="Demo Image - Camera Not Available")
+    with col1:
+        st.subheader("📸 Demo Images")
+        # Create demo images for each sign
+        signs = ["Hello", "I Love You", "Thank You", "No"]
+        for sign in signs:
+            demo_img = np.zeros((200, 300, 3), dtype=np.uint8)
+            cv2.putText(demo_img, f"Sign: {sign}", (50, 100), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            st.image(demo_img, caption=f"Demo: {sign}", use_column_width=True)
     
-    st.info("💡 To test with real camera, run this locally with: `streamlit run app.py`")
+    with col2:
+        st.subheader("🎯 How It Works")
+        st.markdown("""
+        ### Detection Process:
+        1. **Hand Detection**: Uses MediaPipe to detect hand landmarks
+        2. **Image Processing**: Crops and preprocesses hand region
+        3. **Classification**: Feeds image to trained CNN model
+        4. **Output**: Displays detected sign and speaks it
+        
+        ### Supported Signs:
+        - 👋 **Hello**
+        - ❤️ **I Love You**
+        - 🙏 **Thank You**
+        - ❌ **No**
+        """)
+    
+    st.info("💡 **Pro Tip**: Run this locally to test with your real webcam and see actual sign detection in action!")
     
 else:
     st.success("✅ Camera detected! Starting live feed...")
