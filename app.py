@@ -2,6 +2,7 @@ import streamlit as st
 import cv2
 import numpy as np
 import time
+import os
 
 # --- Streamlit Config ---
 st.set_page_config(page_title="Sign Language Detection", layout="wide")
@@ -81,23 +82,34 @@ if not camera_available:
     4. **Allow camera access** when prompted in your browser
     
     ### What you'll see here:
-    - Demo images showing how the app works
+    - Real sign language images showing how to make each sign
     - Instructions for local setup
     - Sample sign language images
     """)
     
-    # Create demo content
+    # Create demo content with actual sign images
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📸 Demo Images")
-        # Create demo images for each sign
-        signs = ["Hello", "I Love You", "Thank You", "No"]
-        for sign in signs:
-            demo_img = np.zeros((200, 300, 3), dtype=np.uint8)
-            cv2.putText(demo_img, f"Sign: {sign}", (50, 100), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            st.image(demo_img, caption=f"Demo: {sign}", use_column_width=True)
+        st.subheader("📸 Supported ASL Signs")
+        
+        # Load and display actual sign images
+        sign_images = {
+            "Hello": "sign_images/Hello.jpg",
+            "I Love You": "sign_images/I_Love_You.jpg", 
+            "Thank You": "sign_images/Thank_You.jpg",
+            "No": "sign_images/No.jpg"
+        }
+        
+        for sign_name, image_path in sign_images.items():
+            if os.path.exists(image_path):
+                st.image(image_path, caption=f"ASL Sign: {sign_name}", use_column_width=True)
+            else:
+                # Fallback if image doesn't exist
+                demo_img = np.zeros((200, 300, 3), dtype=np.uint8)
+                cv2.putText(demo_img, f"Sign: {sign_name}", (50, 100), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                st.image(demo_img, caption=f"Demo: {sign_name}", use_column_width=True)
     
     with col2:
         st.subheader("🎯 How It Works")
@@ -109,10 +121,16 @@ if not camera_available:
         4. **Output**: Displays detected sign and speaks it
         
         ### Supported Signs:
-        - 👋 **Hello**
-        - ❤️ **I Love You**
-        - 🙏 **Thank You**
-        - ❌ **No**
+        - 👋 **Hello** - Wave your hand
+        - ❤️ **I Love You** - Thumb, index, and pinky extended
+        - 🙏 **Thank You** - Fingers touching chin, then moving forward
+        - ❌ **No** - Index finger pointing up, moving side to side
+        
+        ### Tips for Best Detection:
+        - Ensure good lighting
+        - Keep your hand clearly visible
+        - Make signs slowly and clearly
+        - Position hand in center of camera view
         """)
     
     st.info("💡 **Pro Tip**: Run this locally to test with your real webcam and see actual sign detection in action!")
